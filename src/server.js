@@ -1,11 +1,12 @@
 const Hapi = require('hapi');
 const handlebars = require('handlebars');
-const vision = require('vision')
+const vision = require('vision');
+const auth = require('hapi-auth-basic');
 
 const routes = require('./routes');
 
 // The validation function(s) you have written
-const basicValidate = require('../lib/validate');
+const validateFunc = require('../lib/validate');
 
 var server = new Hapi.Server();
 server.connection({
@@ -13,7 +14,7 @@ server.connection({
   port: 4000
 });
 
-server.register([vision], function (err) {
+server.register([vision, auth], function (err) {
   if (err) throw err;
 
   server.views({
@@ -21,7 +22,8 @@ server.register([vision], function (err) {
     path: 'views'
   });
 
-  // Add an authentication strategy here
+  server.auth.strategy('ourStrategy', 'basic', { validateFunc });
+  server.auth.default('ourStrategy');
 
   server.route(routes);
 });
